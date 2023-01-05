@@ -7,5 +7,11 @@
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
   </PropertyGroup>
+  <ItemGroup>
+    <Resource Include="res\fonts\Pixeloid-Sans.ttf" />
+  </ItemGroup>
+  <ItemGroup>
+	<Resource Include="res\img\*.png" />
+  </ItemGroup>
 
 </Project>

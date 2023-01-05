@@ -6,7 +6,14 @@ using System.Threading.Tasks;
 
 namespace Space_Invaders
 {
-    internal interface ShootingEntity
+    internal interface ShootingEntity : GameEntity
     {
+        // Direction of projectile
+        public Direction DirectionOfProjectile { get; }
+
+        public void Shoot()
+        {
+
+        }
     }
 }

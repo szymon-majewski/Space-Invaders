@@ -6,7 +6,11 @@ using System.Threading.Tasks;
 
 namespace Space_Invaders
 {
-    internal class Spaceship
+    internal class Spaceship 
     {
+        public void Move()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace Space_Invaders
 {
-    internal interface Renderable
+    internal interface Renderable : GameEntity
     {
+        public void Render();
     }
 }

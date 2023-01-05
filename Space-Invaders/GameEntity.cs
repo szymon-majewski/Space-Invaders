@@ -6,7 +6,14 @@ using System.Threading.Tasks;
 
 namespace Space_Invaders
 {
-    internal class GameEntity
+    internal interface GameEntity
     {
+        // Position on board
+        public int X { get; set; }
+        public int Y { get; set; }
+
+        // Size
+        public int Width { get; }
+        public int Height { get; }
     }
 }
