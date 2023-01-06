@@ -17,7 +17,7 @@ namespace Space_Invaders
         // Move direction
         public Direction MoveDirection { get; set; }
 
-        // Change entity position
+        // Change entity position.
         public void Move();
     }
 }

@@ -7,17 +7,30 @@ using System.Threading.Tasks;
 
 namespace Space_Invaders
 {
-    internal class Alien : Renderable
+    internal class Alien : Renderable, MovingEntity
     {
         public int X { get; set; }
         public int Y { get; set; }
 
         public int Width { get; }
         public int Height { get; }
+        public int Speed { get; set; }
+        public int? MoveCooldown { get; set; }
+        public Direction MoveDirection { get; set; }
 
         public void Render()
         {
             throw new NotImplementedException();
+        }
+
+        public void Move()
+        {
+            X += Speed * (int)MoveDirection;
+        }
+
+        public int XAfterMove()
+        {
+            return X + Speed * (int)MoveDirection;
         }
 
         public enum Type
@@ -35,6 +48,7 @@ namespace Space_Invaders
         };
 
         public static int AlienHeight = 24;
+        public static int InitialSpeed = 20;
 
         public Type TypeSize;
 
@@ -45,6 +59,16 @@ namespace Space_Invaders
             TypeSize = type;
             Width = AlienTypeWidth[TypeSize];
             Height = AlienHeight;
+            Speed = InitialSpeed;
+            MoveDirection = Direction.Right;
+        }
+
+        // Incerases Y. Returns true if an alien is on earth level.
+        public void GetCloserToEarth(int amount)
+        {
+            Y += amount;
+
+            // Check game over
         }
     }
 }

@@ -16,7 +16,7 @@ namespace Space_Invaders
         public const int BOARD_HORIZONTAL_MARGIN = 46;
         public const int BOARD_VERTICAL_MARGIN = 20;
 
-        public const int SPACE_BETWEEN_ROWS = 10;
+        public const int SPACE_BETWEEN_ROWS = 30;
 
         public Alien.Type[] AlienTypesInRows = new Alien.Type[ALIENS_IN_COLUMN_COUNT]
         { 
@@ -29,9 +29,9 @@ namespace Space_Invaders
 
         public static Dictionary<Alien.Type, int> SpacesBetweenAliens = new Dictionary<Alien.Type, int>()
         {
-            { Alien.Type.Small, 7 },
-            { Alien.Type.Medium, 3 },
-            { Alien.Type.Large, 3 }
+            { Alien.Type.Small, 24 },
+            { Alien.Type.Medium, 15 },
+            { Alien.Type.Large, 12 }
         };
 
         public Board Board;
