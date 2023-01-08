@@ -10,6 +10,18 @@ namespace Space_Invaders
     {
         public List<List<Alien>> Aliens { get; set; }
         public Spaceship Spaceship { get; set; }
-        public List<Bullet> Bullets { get; set; }
+        public List<Bullet> SpaceshipBullets { get; set; }
+        public List<Bullet> AlienBullets { get; set; }
+
+        public void Setup()
+        {
+            Spaceship.PlayerController.PlayerShot += NewSpaceshipBullet;
+
+        }
+
+        public void NewSpaceshipBullet(object sender, NewBulletEventArgs e)
+        {
+            SpaceshipBullets.Add(e.NewBullet);
+        }
     }
 }

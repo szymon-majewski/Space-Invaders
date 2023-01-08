@@ -18,6 +18,11 @@ namespace Space_Invaders
 
         public const int SPACE_BETWEEN_ROWS = 30;
 
+        public const int SPACESHIP_INITIAL_X = MainWindow.WINDOW_WIDTH / 2 - MainWindow.WEIRD_WINDOW_RIGHT_BORDER_DISPLACEMENT_AMOUNT;
+        public const int SPACESHIP_INITIAL_Y = 600;
+        public const int SPACESHIP_WIDTH = 39;
+        public const int SPACESHIP_HEIGHT = 24;
+
         public Alien.Type[] AlienTypesInRows = new Alien.Type[ALIENS_IN_COLUMN_COUNT]
         { 
             Alien.Type.Small,
@@ -43,11 +48,11 @@ namespace Space_Invaders
 
         public void Setup()
         {
+            // Create aliens
             Board.Aliens = new List<List<Alien>>(ALIENS_IN_COLUMN_COUNT);
 
             int leftOffset;
             int topOffset = BOARD_VERTICAL_MARGIN;
-            int alienSpriteOffset;
             int currSpaceBetweenAliens;
 
             for (int y = 0; y < ALIENS_IN_COLUMN_COUNT; ++y)
@@ -71,6 +76,15 @@ namespace Space_Invaders
                     leftOffset += currSpaceBetweenAliens + Alien.AlienTypeWidth[AlienTypesInRows[y]];
                 }
             }
+
+            // Create spaceship
+            Board.Spaceship = new Spaceship(SPACESHIP_INITIAL_X, SPACESHIP_INITIAL_Y, SPACESHIP_WIDTH, SPACESHIP_HEIGHT);
+
+            // Create bullets lists
+            Board.SpaceshipBullets = new List<Bullet>();
+            Board.AlienBullets = new List<Bullet>();
+
+            Board.Setup();
         }
     }
 }

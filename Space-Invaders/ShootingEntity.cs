@@ -11,9 +11,6 @@ namespace Space_Invaders
         // Direction of projectile
         public Direction DirectionOfProjectile { get; }
 
-        public void Shoot()
-        {
-
-        }
+        public void Shoot();
     }
 }
