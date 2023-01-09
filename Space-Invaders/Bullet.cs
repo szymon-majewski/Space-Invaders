@@ -26,7 +26,7 @@ namespace Space_Invaders
 
         public const int SPACESHIP_BULLET_WIDTH = 3;
         public const int SPACESHIP_BULLET_HEIGHT = 12;
-        public const int SPACESHIP_BULLET_SPEED = 5;
+        public const int SPACESHIP_BULLET_SPEED = 15;
         public const Direction SPACESHIP_BULLET_MOVE_DIRECTION = Direction.Up;
 
         public const int ALIEN_BULLET_WIDTH = 9;
@@ -48,7 +48,7 @@ namespace Space_Invaders
                 MoveDirection = ALIEN_BULLET_MOVE_DIRECTION;
             }
 
-            if (source == Source.Alien)
+            if (source == Source.Spaceship)
             {
                 Width = SPACESHIP_BULLET_WIDTH;
                 Height = SPACESHIP_BULLET_HEIGHT;

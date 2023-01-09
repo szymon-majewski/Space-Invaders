@@ -71,7 +71,7 @@ namespace Space_Invaders
         private DispatcherTimer gameTimerAliens;
         private const int aliensUpdatesPerSecond = 2;
         private DispatcherTimer gameTimerStandard;
-        private const int standardUpdatesPerSecond = 120;
+        private const int standardUpdatesPerSecond = 300;
 
         private int currentAlienImageIndex;
 
@@ -132,13 +132,15 @@ namespace Space_Invaders
                 Bullet currentBullet = SpaceInvaders.Board.SpaceshipBullets[i];
                 currentBullet.Move();
 
-                //if (currentBullet.Y <= UPPER_BORDER_Y)
-                //{
-                //    SpaceInvaders.Board.SpaceshipBullets.Remove(currentBullet);
-                //    BulletsRectangles.RemoveAt(i);
+                // Bullet hit the ceiling
+                if (currentBullet.Y <= UPPER_BORDER_Y)
+                {
+                    SpaceInvaders.Board.SpaceshipBullets.Remove(currentBullet);
+                    BoardPanel.Children.Remove(BulletsRectangles[i]);
+                    BulletsRectangles.RemoveAt(i);
 
-                //    continue;
-                //}
+                    continue;
+                }
 
                 Canvas.SetTop(BulletsRectangles[i], currentBullet.Y);
                 Canvas.SetLeft(BulletsRectangles[i], currentBullet.X);
@@ -234,9 +236,6 @@ namespace Space_Invaders
 
         private void AddBulletToBoard(object sender, NewBulletEventArgs e)
         {
-            // Delete later
-            ScoreLabel.Content = $"Shot at {e.NewBullet.X}, {e.NewBullet.Y}";
-
             Rectangle NewBulletRectangle = new Rectangle
             {
                 Width = e.NewBullet.Width,

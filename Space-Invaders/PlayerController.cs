@@ -43,8 +43,14 @@ namespace Space_Invaders
         public void HandleShootingInput()
         {
             // Add cooldown
-            if (Keyboard.IsKeyDown(Key.Space))
+            if (Keyboard.IsKeyDown(Key.Space) && player.CanShoot)
             {
+                player.CanShoot = false;
+
+                // Reseting timer
+                player.shootingCooldownTimer.Stop();
+                player.shootingCooldownTimer.Start();
+
                 PlayerShot.Invoke(this, new NewBulletEventArgs(new Bullet(player.X + player.Width / 2,
                                player.Y,
                                Bullet.Source.Spaceship

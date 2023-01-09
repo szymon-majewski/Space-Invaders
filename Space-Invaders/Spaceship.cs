@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Timers;
 
 namespace Space_Invaders
 {
@@ -22,7 +23,12 @@ namespace Space_Invaders
 
         public PlayerController PlayerController { get; }
 
+        public int ShootingCooldownMiliseconds { get; set; }
+        public bool CanShoot { get; set; }
+        public Timer shootingCooldownTimer { get; set; }
+
         public const int INITIAL_SPEED = 5;
+        public const int SHOOTING_COOLDOWN_MILISECONDS = 500;
 
         public Spaceship(int x, int y, int width, int height)
         {
@@ -33,6 +39,16 @@ namespace Space_Invaders
             MoveCooldown = null;
             Speed = INITIAL_SPEED;
             DirectionOfProjectile = Direction.Up;
+
+            ShootingCooldownMiliseconds = SHOOTING_COOLDOWN_MILISECONDS;
+
+            shootingCooldownTimer = new Timer()
+            {
+                Interval = ShootingCooldownMiliseconds
+            };
+            shootingCooldownTimer.Elapsed += OnShootingCooldownTimerElapsed;
+            CanShoot = true;
+
 
             // Temporary hard coded fixed value + 9
             PlayerController = new PlayerController(this, 0, MainWindow.WINDOW_WIDTH - Width - MainWindow.WEIRD_WINDOW_RIGHT_BORDER_DISPLACEMENT_AMOUNT + 9);
@@ -51,6 +67,11 @@ namespace Space_Invaders
         public void Shoot()
         {
             PlayerController.HandleShootingInput();
+        }
+
+        public void OnShootingCooldownTimerElapsed(object sender, EventArgs e)
+        {
+            CanShoot = true;
         }
     }
 }
