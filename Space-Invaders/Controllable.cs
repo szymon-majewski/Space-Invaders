@@ -9,6 +9,7 @@ namespace Space_Invaders
     internal interface Controllable
     {
         public PlayerController PlayerController { get; }
+        public bool ControllingEnabled { get; set; }
 
         public int XAfterMove(Direction direction);
     }

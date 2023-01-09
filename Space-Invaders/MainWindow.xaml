@@ -16,7 +16,7 @@
         </Canvas>
         
         <Canvas Name="BoardPanel" Height="650">
-
+            <Label Name="GameOverLabel" Foreground="White" FontSize="30" Canvas.Left="120" Canvas.Top="120" Visibility="Hidden">GAME OVER. SCORE: </Label>
         </Canvas>
 
         <Canvas Name="LivesPanel" Height="50" VerticalAlignment="Center">

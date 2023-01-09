@@ -22,6 +22,11 @@ namespace Space_Invaders
 
         public void HandleMoveInput()
         {
+            if (!player.ControllingEnabled)
+            {
+                return;
+            }
+
             player.MoveDirection = Direction.None;
 
             if (Keyboard.IsKeyDown(Key.Left) && !(player.XAfterMove(Direction.Left) < leftBorder))
@@ -42,6 +47,11 @@ namespace Space_Invaders
 
         public void HandleShootingInput()
         {
+            if (!player.ControllingEnabled)
+            {
+                return;
+            }
+
             // Add cooldown
             if (Keyboard.IsKeyDown(Key.Space) && player.CanShoot)
             {

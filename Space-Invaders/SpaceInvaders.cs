@@ -79,6 +79,7 @@ namespace Space_Invaders
 
             // Create spaceship
             Board.Spaceship = new Spaceship(SPACESHIP_INITIAL_X, SPACESHIP_INITIAL_Y, SPACESHIP_WIDTH, SPACESHIP_HEIGHT);
+            Board.Spaceship.ControllingEnabled = true;
 
             // Create bullets lists
             Board.SpaceshipBullets = new List<Bullet>();

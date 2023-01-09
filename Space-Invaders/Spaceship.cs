@@ -26,6 +26,7 @@ namespace Space_Invaders
         public int ShootingCooldownMiliseconds { get; set; }
         public bool CanShoot { get; set; }
         public Timer shootingCooldownTimer { get; set; }
+        public bool ControllingEnabled { get; set; }
 
         public const int INITIAL_SPEED = 5;
         public const int SHOOTING_COOLDOWN_MILISECONDS = 500;
