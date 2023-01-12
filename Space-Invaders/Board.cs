@@ -12,16 +12,36 @@ namespace Space_Invaders
         public Spaceship Spaceship { get; set; }
         public List<Bullet> SpaceshipBullets { get; set; }
         public List<Bullet> AlienBullets { get; set; }
+        public UFO UFO { get; set; }
 
         public void Setup()
         {
-            Spaceship.PlayerController.PlayerShot += NewSpaceshipBullet;
+            Spaceship.PlayerController.PlayerShot += NewBullet;
 
+            foreach (List<Alien> alienList in Aliens)
+            {
+                foreach (Alien alien in alienList)
+                {
+                    alien.AlienShot += NewBullet;
+                }
+            }
         }
 
-        public void NewSpaceshipBullet(object sender, NewBulletEventArgs e)
+        public delegate void EventHandler(object sender, NewBulletEventArgs e);
+        public event EventHandler BulletAddedToSpaceInvadersBoard;
+
+        public void NewBullet(object sender, NewBulletEventArgs e)
         {
-            SpaceshipBullets.Add(e.NewBullet);
+            if (e.NewBullet.BulletSource == Bullet.Source.Spaceship)
+            {
+                SpaceshipBullets.Add(e.NewBullet);
+            }
+            else
+            {
+                AlienBullets.Add(e.NewBullet);
+            }
+
+            BulletAddedToSpaceInvadersBoard.Invoke(this, e);
         }
     }
 }

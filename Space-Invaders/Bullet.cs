@@ -31,7 +31,7 @@ namespace Space_Invaders
 
         public const int ALIEN_BULLET_WIDTH = 9;
         public const int ALIEN_BULLET_HEIGHT = 21;
-        public const int ALIEN_BULLET_SPEED = 3;
+        public const int ALIEN_BULLET_SPEED = 4;
         public const Direction ALIEN_BULLET_MOVE_DIRECTION = Direction.Down;
 
         public Bullet(int x, int y, Source source)

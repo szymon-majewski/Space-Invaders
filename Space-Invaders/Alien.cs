@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
+using System.Timers;
 
 namespace Space_Invaders
 {
-    internal class Alien : Renderable, MovingEntity
+    internal class Alien : Renderable, MovingEntity, ShootingEntity
     {
         public int X { get; set; }
         public int Y { get; set; }
@@ -17,6 +19,17 @@ namespace Space_Invaders
         public int Speed { get; set; }
         public int? MoveCooldown { get; set; }
         public Direction MoveDirection { get; set; }
+
+        public Direction DirectionOfProjectile { get; }
+        public int ShootingCooldownMiliseconds { get; set; }
+
+        public bool CanShoot { get; set; }
+        public Timer shootingCooldownTimer { get; set; }
+
+        public const int SHOOTING_COOLDOWN_LOW_BORDER = 5000;
+        public const int SHOOTING_COOLDOWN_UP_BORDER = 25000;
+
+        private static Random random = new Random();
 
         public void Render()
         {
@@ -61,6 +74,16 @@ namespace Space_Invaders
             Height = AlienHeight;
             Speed = InitialSpeed;
             MoveDirection = Direction.Right;
+
+            ShootingCooldownMiliseconds = random.Next(SHOOTING_COOLDOWN_LOW_BORDER, SHOOTING_COOLDOWN_UP_BORDER);
+
+            shootingCooldownTimer = new Timer()
+            {
+                Interval = ShootingCooldownMiliseconds
+            };
+            shootingCooldownTimer.Elapsed += OnShootingCooldownTimerElapsed;
+            shootingCooldownTimer.Start();
+            CanShoot = false;
         }
 
         // Incerases Y. Returns true if an alien is on earth level.
@@ -69,6 +92,32 @@ namespace Space_Invaders
             Y += amount;
 
             // Check game over
+        }
+
+        public delegate void EventHandler(object sender, NewBulletEventArgs e);
+        public event EventHandler AlienShot;
+
+        public void Shoot()
+        {
+            if (!CanShoot)
+            {
+                return;
+            }
+
+            CanShoot = false;
+
+            shootingCooldownTimer.Stop();
+            shootingCooldownTimer.Start();
+
+            AlienShot.Invoke(this, new NewBulletEventArgs(new Bullet(X + Width / 2,
+                                                          Y + Height,
+                                                          Bullet.Source.Alien
+                                                          )));
+        }
+
+        private void OnShootingCooldownTimerElapsed(object sender, EventArgs e)
+        {
+            CanShoot = true;
         }
     }
 }

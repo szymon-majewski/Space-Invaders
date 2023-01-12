@@ -13,5 +13,8 @@
   <ItemGroup>
 	<Resource Include="res\img\*.png" />
   </ItemGroup>
+  <ItemGroup>
+    <None Remove="res\img\Ufo.png" />
+  </ItemGroup>
 
 </Project>

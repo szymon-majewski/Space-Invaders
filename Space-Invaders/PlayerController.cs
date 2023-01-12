@@ -62,9 +62,9 @@ namespace Space_Invaders
                 player.shootingCooldownTimer.Start();
 
                 PlayerShot.Invoke(this, new NewBulletEventArgs(new Bullet(player.X + player.Width / 2,
-                               player.Y,
-                               Bullet.Source.Spaceship
-                               )));
+                                                               player.Y,
+                                                               Bullet.Source.Spaceship
+                                                               )));
             }
         }
     }

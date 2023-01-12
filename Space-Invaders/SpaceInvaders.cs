@@ -4,7 +4,9 @@ using System.Linq;
 using System.Net.Http.Headers;
 using System.Security.Policy;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Timers;
 
 namespace Space_Invaders
 {
@@ -14,7 +16,7 @@ namespace Space_Invaders
         public const int ALIENS_IN_COLUMN_COUNT = 5;
 
         public const int BOARD_HORIZONTAL_MARGIN = 46;
-        public const int BOARD_VERTICAL_MARGIN = 20;
+        public const int BOARD_VERTICAL_MARGIN = 30;
 
         public const int SPACE_BETWEEN_ROWS = 30;
 
@@ -23,8 +25,18 @@ namespace Space_Invaders
         public const int SPACESHIP_WIDTH = 39;
         public const int SPACESHIP_HEIGHT = 24;
 
+        public const int UFO_WIDTH = 48;
+        public const int UFO_HEIGHT = 21;
+        public const int UFO_Y = 17;
+
+        public const int TIME_BEFORE_UFO = 15000;
+        public Direction DirectionUFO = Direction.Left;
+
+        public const int MAX_UFOS_PER_ROUND = 2;
+        public int UfosCreatedThisRound;
+
         public Alien.Type[] AlienTypesInRows = new Alien.Type[ALIENS_IN_COLUMN_COUNT]
-        { 
+        {
             Alien.Type.Small,
             Alien.Type.Medium,
             Alien.Type.Medium,
@@ -86,6 +98,45 @@ namespace Space_Invaders
             Board.AlienBullets = new List<Bullet>();
 
             Board.Setup();
+
+            // UFO
+            UfosCreatedThisRound = 0;
+
+            var timerUFO = new System.Timers.Timer()
+            {
+                Interval = TIME_BEFORE_UFO
+            };
+            timerUFO.Elapsed += AddUFO;
+            timerUFO.Start();
+        }
+
+        public event EventHandler AddedUFO;
+
+        public void AddUFO(object sender, EventArgs e)
+        {
+            ++UfosCreatedThisRound;
+
+            UFO ufo;
+
+            if (DirectionUFO == Direction.Left)
+            {
+                ufo = new UFO(MainWindow.WINDOW_WIDTH + UFO_WIDTH, UFO_Y, UFO_WIDTH, UFO_HEIGHT, Direction.Left);
+            }
+            else
+            {
+                ufo = new UFO(-UFO_WIDTH, UFO_Y, UFO_WIDTH, UFO_HEIGHT, Direction.Right);
+            }
+
+            DirectionUFO = (Direction)((int)DirectionUFO * -1);
+
+            Board.UFO = ufo;
+
+            AddedUFO.Invoke(this, new EventArgs());
+
+            if (UfosCreatedThisRound >= MAX_UFOS_PER_ROUND)
+            {
+                (sender as System.Timers.Timer).Stop();
+            }
         }
     }
 }

@@ -6,13 +6,14 @@
         xmlns:local="clr-namespace:Space_Invaders"
         mc:Ignorable="d"
         Title="Space Invaders" Height="800" Width="650"
+        Icon=".\res\img\Icon.png"
         ResizeMode="NoResize"
         FontFamily="./res/fonts/#Pixeloid Sans"
         FontSize="20">
     <StackPanel Name="MainCanvas" Background="Black" Orientation="Vertical">
         <Canvas Name="ScorePanel" Height="50" VerticalAlignment="Center">
             <Label Name="ScoreLabel" Foreground="White" Canvas.Left="15" Canvas.Top="10">Score: 0</Label>
-            <Label Name="HighScoreLabel" Foreground="White" Canvas.Right="0" Canvas.Left="384" VerticalAlignment="Top" Canvas.Top="12">High Score: 0</Label>
+            <Label Name="WaveLabel" Foreground="White" Canvas.Right="20"  VerticalAlignment="Top" Canvas.Top="12">Wave: 1</Label>
         </Canvas>
         
         <Canvas Name="BoardPanel" Height="650">

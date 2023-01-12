@@ -77,10 +77,15 @@ namespace Space_Invaders
 
         };
         internal static ImageBrush AlienExplosionImage = new ImageBrush() { ImageSource = new BitmapImage(new Uri("pack://application:,,,/res/img/AlienExplosion.png")) };
+        internal static ImageBrush UFOImage = new ImageBrush() { ImageSource = new BitmapImage(new Uri("pack://application:,,,/res/img/UFO.png")) };
 
         public List<List<Rectangle>> AliensRectangles = new List<List<Rectangle>>(SpaceInvaders.ALIENS_IN_COLUMN_COUNT);
         public Rectangle SpaceshipRectangle;
-        public List<Rectangle> BulletsRectangles = new List<Rectangle>();
+        public List<Rectangle> SpaceshipBulletsRectangles = new List<Rectangle>();
+        public List<Rectangle> AliensBulletsRectangles = new List<Rectangle>();
+        public Rectangle UFORectangle;
+
+        public List<int> AliensBulletsAnimationStage = new List<int>();
 
         private DispatcherTimer gameTimerAliens;
         private const double INITIAL_ALIENS_UPDATES_PER_SECOND = 0.8;
@@ -103,8 +108,13 @@ namespace Space_Invaders
 
         public const int WEIRD_WINDOW_RIGHT_BORDER_DISPLACEMENT_AMOUNT = 24;
         public const int UPPER_BORDER_Y = 10;
+        public const int LOWER_BORDER_Y = 620;
 
         public const int ALIEN_EXPLOSION_WIDTH = 36;
+
+        public int SpaceshipLivesLeft = 3;
+        public bool UFOIsAdded = false;
+        public bool UFORectangleIsAdded = false;
 
         public MainWindow()
         {
@@ -114,15 +124,24 @@ namespace Space_Invaders
             Width = WINDOW_WIDTH;
 
             SpaceInvaders = new SpaceInvaders(new Board());
+            SpaceInvaders.AddedUFO += AddUFO;
+
+            // Add bullet events
+            SpaceInvaders.Board.BulletAddedToSpaceInvadersBoard += AddBulletToBoard;
+
+            //foreach (List<Alien> alienList in SpaceInvaders.Board.Aliens)
+            //{
+            //    foreach (Alien alien in alienList)
+            //    {
+            //        SpaceInvaders.Board.BulletAddedToSpaceInvadersBoard += AddBulletToBoard;
+            //    }
+            //}
 
             Setup();
         }
 
         private void GameTimerStandardTick(object sender, EventArgs e)
         {
-            //Delete later
-            HighScoreLabel.Content = currentAliensUpdatesPerSecond;
-
             Spaceship spaceship = SpaceInvaders.Board.Spaceship;
 
             // Player move
@@ -131,7 +150,7 @@ namespace Space_Invaders
             Canvas.SetTop(SpaceshipRectangle, spaceship.Y);
             Canvas.SetLeft(SpaceshipRectangle, spaceship.X);
 
-            // Bullets shooting and movement
+            // Spaceship shooting, bullet movement and collisions
             spaceship.Shoot();
 
             for (int i = 0; i < SpaceInvaders.Board.SpaceshipBullets.Count; ++i)
@@ -142,18 +161,18 @@ namespace Space_Invaders
                 // Bullet hit the ceiling
                 if (currentBullet.Y <= UPPER_BORDER_Y)
                 {
-                    RemoveBullet(i);
+                    RemoveSpaceshipBullet(i);
 
                     continue;
                 }
 
-                Canvas.SetTop(BulletsRectangles[i], currentBullet.Y);
-                Canvas.SetLeft(BulletsRectangles[i], currentBullet.X);
-
-                Rect bulletHitBox = new Rect(Canvas.GetLeft(BulletsRectangles[i]), Canvas.GetTop(BulletsRectangles[i]), BulletsRectangles[i].Width, BulletsRectangles[i].Height);
-                bool bulletHit = false;
+                Canvas.SetTop(SpaceshipBulletsRectangles[i], currentBullet.Y);
+                Canvas.SetLeft(SpaceshipBulletsRectangles[i], currentBullet.X);
 
                 // Collisions
+                Rect bulletHitBox = new Rect(Canvas.GetLeft(SpaceshipBulletsRectangles[i]), Canvas.GetTop(SpaceshipBulletsRectangles[i]), SpaceshipBulletsRectangles[i].Width, SpaceshipBulletsRectangles[i].Height);
+                bool bulletHit = false;
+
                 for (int y = 0; y < SpaceInvaders.Board.Aliens.Count && !bulletHit; ++y)
                 {
                     for (int x = 0; x < SpaceInvaders.Board.Aliens[y].Count; ++x)
@@ -165,13 +184,122 @@ namespace Space_Invaders
                         if (alienHitBox.IntersectsWith(bulletHitBox))
                         {
                             bulletHit = true;
-                            RemoveBullet(i);
+                            RemoveSpaceshipBullet(i);
                             AlienDeath(y, x);
 
                             break;
                         }
                     }
                 }
+            }
+
+            // Aliens shooting, bullet movement and collisions
+            for (int y = 0; y < SpaceInvaders.Board.Aliens.Count; ++y)
+            {
+                for (int x = 0; x < SpaceInvaders.Board.Aliens[y].Count; ++x)
+                {
+                    Alien currentAlien = SpaceInvaders.Board.Aliens[y][x];
+
+                    currentAlien.Shoot();
+                }
+            }
+
+            Rect spaceshipHitBox = new Rect(Canvas.GetLeft(SpaceshipRectangle), Canvas.GetTop(SpaceshipRectangle), SpaceshipRectangle.Width, SpaceshipRectangle.Height);
+
+            for (int i = 0; i < SpaceInvaders.Board.AlienBullets.Count; ++i)
+            {
+                Bullet currentBullet = SpaceInvaders.Board.AlienBullets[i];
+                currentBullet.Move();
+
+                // Bullet hit the ground
+                if (currentBullet.Y >= LOWER_BORDER_Y)
+                {
+                    RemoveAlienBullet(i);
+
+                    continue;
+                }
+
+                // Animate bullet
+                AliensBulletsAnimationStage[i] = (AliensBulletsAnimationStage[i] + 1) % 4;
+                AliensBulletsRectangles[i].Fill = AlienBulletImages[AliensBulletsAnimationStage[i]];
+
+                Canvas.SetTop(AliensBulletsRectangles[i], currentBullet.Y);
+                Canvas.SetLeft(AliensBulletsRectangles[i], currentBullet.X);
+
+                // Collisions with spaceship
+                Rect bulletHitBox = new Rect(Canvas.GetLeft(AliensBulletsRectangles[i]), Canvas.GetTop(AliensBulletsRectangles[i]), AliensBulletsRectangles[i].Width, AliensBulletsRectangles[i].Height);
+
+                if (bulletHitBox.IntersectsWith(spaceshipHitBox))
+                {
+                    RemoveAlienBullet(i);
+                    SpaceshipHit();
+                }
+            }
+
+            // UFO move, collision
+
+            if (UFOIsAdded)
+            {
+                if (!UFORectangleIsAdded)
+                {
+                    AddUFORectangle();
+                }
+
+                SpaceInvaders.Board.UFO.Move();
+
+                Canvas.SetTop(UFORectangle, SpaceInvaders.Board.UFO.Y);
+                Canvas.SetLeft(UFORectangle, SpaceInvaders.Board.UFO.X);
+
+                Rect ufoHitBox = new Rect(Canvas.GetLeft(UFORectangle), Canvas.GetTop(UFORectangle), UFORectangle.Width, UFORectangle.Height);
+
+                for (int i = 0; i < SpaceInvaders.Board.SpaceshipBullets.Count; ++i)
+                {
+                    Rect bulletHitBox = new Rect(Canvas.GetLeft(SpaceshipBulletsRectangles[i]), Canvas.GetTop(SpaceshipBulletsRectangles[i]), SpaceshipBulletsRectangles[i].Width, SpaceshipBulletsRectangles[i].Height);
+
+                    if (ufoHitBox.IntersectsWith(bulletHitBox))
+                    {
+                        UFODeath();
+                        break;
+                    }
+                }
+            }
+            
+        }
+
+        private void UFODeath()
+        {
+            UFOIsAdded = false;
+            UFORectangleIsAdded = false;
+
+            Random random = new Random();
+
+            Score += UFO_SCORES[random.Next(UFO_SCORES.Count)];
+            ScoreLabel.Content = "Score: " + Score;
+
+            Rectangle deadUFORectangle = UFORectangle;
+            UFO deadUFO = SpaceInvaders.Board.UFO;
+
+            SpaceInvaders.Board.UFO = null;
+
+            deadUFORectangle.Width = ALIEN_EXPLOSION_WIDTH;
+            deadUFORectangle.Fill = AlienExplosionImage;
+
+            alienDeathTimer = new DispatcherTimer()
+            {
+                Interval = TimeSpan.FromMilliseconds(ALIEN_POST_DEATH_EXPLOSION_TIME)
+            };
+            alienDeathTimer.Tick += (sender, e) => { RemoveAlienRectangle(sender, e, deadUFORectangle); };
+            alienDeathTimer.Start();
+        }
+
+        private void SpaceshipHit()
+        {
+            --SpaceshipLivesLeft;
+            LivesLabel.Content = "Lives: " + SpaceshipLivesLeft;
+
+            if (SpaceshipLivesLeft <= 0)
+            { 
+                GameOver();
             }
         }
 
@@ -227,11 +355,19 @@ namespace Space_Invaders
             (sender as DispatcherTimer).Stop();
         }
 
-        private void RemoveBullet(int index)
+        // Awful
+        private void RemoveSpaceshipBullet(int index)
         {
             SpaceInvaders.Board.SpaceshipBullets.RemoveAt(index);
-            BoardPanel.Children.Remove(BulletsRectangles[index]);
-            BulletsRectangles.RemoveAt(index);
+            BoardPanel.Children.Remove(SpaceshipBulletsRectangles[index]);
+            SpaceshipBulletsRectangles.RemoveAt(index);
+        }
+
+        private void RemoveAlienBullet(int index)
+        {
+            SpaceInvaders.Board.AlienBullets.RemoveAt(index);
+            BoardPanel.Children.Remove(AliensBulletsRectangles[index]);
+            AliensBulletsRectangles.RemoveAt(index);
         }
 
         private void GameTimerAliensTick(object sender, EventArgs e)
@@ -286,7 +422,10 @@ namespace Space_Invaders
         {
             gameTimerStandard.Stop();
             gameTimerAliens.Stop();
-            alienDeathTimer.Stop();
+            //alienDeathTimer.Stop();
+
+            ClearBoard();
+
             SpaceInvaders.Board.Spaceship.ControllingEnabled = false;
             GameOverLabel.Content = "GAME OVER. SCORE: " + Score;
             GameOverLabel.Visibility = Visibility.Visible;
@@ -297,16 +436,11 @@ namespace Space_Invaders
             SpaceInvaders.Setup();
 
             ClearBoard();
+            WaveLabel.Content = "Wave: " + (currentWaveIndex + 1);
 
-            //foreach (object boardPanelChild in BoardPanel.Children)
-            //{
-            //    if (boardPanelChild is Rectangle)
-            //    {
-            //        BoardPanel.Children.Remove(boardPanelChild as UIElement);
-            //    }
-            //}
-
-            //BoardPanel.Children.Clear();
+            AliensRectangles = new List<List<Rectangle>>(SpaceInvaders.ALIENS_IN_COLUMN_COUNT);
+            AliensBulletsRectangles = new List<Rectangle>();
+            SpaceshipBulletsRectangles = new List<Rectangle>();
 
             // Aliens rectanles
             for (int y = 0; y < SpaceInvaders.ALIENS_IN_COLUMN_COUNT; ++y)
@@ -344,9 +478,6 @@ namespace Space_Invaders
             Canvas.SetLeft(SpaceshipRectangle, SpaceInvaders.Board.Spaceship.X);
 
             BoardPanel.Children.Add(SpaceshipRectangle);
-
-            // Add bullet events
-            SpaceInvaders.Board.Spaceship.PlayerController.PlayerShot += AddBulletToBoard;
 
             // This variable is for alien animation purposes
             currentAlienImageIndex = 0;
@@ -405,7 +536,15 @@ namespace Space_Invaders
                 Fill = e.NewBullet.BulletSource == Bullet.Source.Spaceship ? SpaceshipBulletImage : AlienBulletImages[0]
             };
 
-            BulletsRectangles.Add(NewBulletRectangle);
+            if (e.NewBullet.BulletSource == Bullet.Source.Spaceship)
+            {
+                SpaceshipBulletsRectangles.Add(NewBulletRectangle);
+            }
+            else
+            {
+                AliensBulletsRectangles.Add(NewBulletRectangle);
+                AliensBulletsAnimationStage.Add(0);
+            }
 
             Canvas.SetTop(NewBulletRectangle, e.NewBullet.Y);
             Canvas.SetLeft(NewBulletRectangle, e.NewBullet.X);
@@ -415,7 +554,12 @@ namespace Space_Invaders
 
         private void ClearBoard()
         {
-            foreach (Rectangle bulletRectangle in BulletsRectangles)
+            foreach (Rectangle bulletRectangle in SpaceshipBulletsRectangles)
+            {
+                BoardPanel.Children.Remove(bulletRectangle);
+            }
+
+            foreach (Rectangle bulletRectangle in AliensBulletsRectangles)
             {
                 BoardPanel.Children.Remove(bulletRectangle);
             }
@@ -427,6 +571,33 @@ namespace Space_Invaders
             }
 
             BoardPanel.Children.Remove(SpaceshipRectangle);
+
+            if (UFORectangleIsAdded)
+            {
+                BoardPanel.Children.Remove(UFORectangle);
+            }
+        }
+
+        private void AddUFO(object sender, EventArgs e)
+        {
+            UFOIsAdded = true;
+        }
+
+        private void AddUFORectangle()
+        {
+            UFORectangleIsAdded = true;
+
+            UFORectangle = new Rectangle
+            {
+                Width = SpaceInvaders.Board.UFO.Width,
+                Height = SpaceInvaders.Board.UFO.Height,
+                Fill = UFOImage
+            };
+
+            Canvas.SetTop(UFORectangle, SpaceInvaders.Board.UFO.Y);
+            Canvas.SetLeft(UFORectangle, SpaceInvaders.Board.UFO.X);
+
+            BoardPanel.Children.Add(UFORectangle);
         }
     }
 }
