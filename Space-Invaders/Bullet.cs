@@ -6,15 +6,10 @@ using System.Threading.Tasks;
 
 namespace Space_Invaders
 {
-    internal class Bullet : GameEntity, MovingEntity
+    public class Bullet : GameEntity, MovingEntity
     {
         public int Speed { get; set; }
-        public int? MoveCooldown { get; set; }
         public Direction MoveDirection { get; set; }
-        public int X { get; set; }
-        public int Y { get; set; }
-        public int Width { get; }
-        public int Height { get; }
 
         public enum Source
         {

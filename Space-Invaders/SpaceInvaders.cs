@@ -10,7 +10,7 @@ using System.Timers;
 
 namespace Space_Invaders
 {
-    internal class SpaceInvaders
+    public class SpaceInvaders
     {
         public const int ALIENS_IN_ROW_COUNT = 11;
         public const int ALIENS_IN_COLUMN_COUNT = 5;

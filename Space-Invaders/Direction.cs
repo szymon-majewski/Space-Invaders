@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Space_Invaders
 {
-    internal enum Direction
+    public enum Direction
     {
         Up = -1,
         Down = 1,

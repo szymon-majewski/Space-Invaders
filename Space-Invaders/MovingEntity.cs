@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Space_Invaders
 {
-    internal interface MovingEntity : GameEntity
+    public interface MovingEntity
     {
         // Amount of units entity moves at once
         public int Speed { get; set; }

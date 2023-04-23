@@ -32,6 +32,35 @@ namespace Space_Invaders
 
         public int Score = 0;
 
+        private DispatcherTimer gameTimerAliens;
+        private const double INITIAL_ALIENS_UPDATES_PER_SECOND = 0.8;
+
+        private DispatcherTimer gameTimerStandard;
+        private const int STANDARD_UPDATES_PER_SECOND = 300;
+
+        private DispatcherTimer alienDeathTimer;
+
+        private int currentWaveIndex = 0;
+        private double currentAliensUpdatesPerSecond = INITIAL_ALIENS_UPDATES_PER_SECOND;
+        private double aliensUpdatesPerSecondBonus = 0.1;
+
+        private int currentAlienImageIndex;
+
+        private List<Alien> leftmostAliens;
+        private List<Alien> rightmostAliens;
+
+        private bool previousTickAliensWentDown;
+
+        public const int WEIRD_WINDOW_RIGHT_BORDER_DISPLACEMENT_AMOUNT = 24;
+        public const int UPPER_BORDER_Y = 10;
+        public const int LOWER_BORDER_Y = 620;
+
+        public const int ALIEN_EXPLOSION_WIDTH = 36;
+
+        public int SpaceshipLivesLeft = 3;
+        public bool UFOIsAdded = false;
+        public bool UFORectangleIsAdded = false;
+
         internal readonly Dictionary<Alien.Type, int> ALIEN_SCORES = new Dictionary<Alien.Type, int>()
         {
             { Alien.Type.Small, 30 },
@@ -87,35 +116,6 @@ namespace Space_Invaders
 
         public List<int> AliensBulletsAnimationStage = new List<int>();
 
-        private DispatcherTimer gameTimerAliens;
-        private const double INITIAL_ALIENS_UPDATES_PER_SECOND = 0.8;
-
-        private DispatcherTimer gameTimerStandard;
-        private const int STANDARD_UPDATES_PER_SECOND = 300;
-
-        private DispatcherTimer alienDeathTimer;
-
-        private int currentWaveIndex = 0;
-        private double currentAliensUpdatesPerSecond = INITIAL_ALIENS_UPDATES_PER_SECOND;
-        private double aliensUpdatesPerSecondBonus = 0.1;
-
-        private int currentAlienImageIndex;
-
-        private List<Alien> leftmostAliens;
-        private List<Alien> rightmostAliens;
-
-        private bool previousTickAliensWentDown;
-
-        public const int WEIRD_WINDOW_RIGHT_BORDER_DISPLACEMENT_AMOUNT = 24;
-        public const int UPPER_BORDER_Y = 10;
-        public const int LOWER_BORDER_Y = 620;
-
-        public const int ALIEN_EXPLOSION_WIDTH = 36;
-
-        public int SpaceshipLivesLeft = 3;
-        public bool UFOIsAdded = false;
-        public bool UFORectangleIsAdded = false;
-
         public MainWindow()
         {
             InitializeComponent();
@@ -129,15 +129,79 @@ namespace Space_Invaders
             // Add bullet events
             SpaceInvaders.Board.BulletAddedToSpaceInvadersBoard += AddBulletToBoard;
 
-            //foreach (List<Alien> alienList in SpaceInvaders.Board.Aliens)
-            //{
-            //    foreach (Alien alien in alienList)
-            //    {
-            //        SpaceInvaders.Board.BulletAddedToSpaceInvadersBoard += AddBulletToBoard;
-            //    }
-            //}
-
             Setup();
+        }
+
+        public void Setup()
+        {
+            SpaceInvaders.Setup();
+
+            ClearBoard();
+            WaveLabel.Content = "Wave: " + (currentWaveIndex + 1);
+
+            AliensRectangles = new List<List<Rectangle>>(SpaceInvaders.ALIENS_IN_COLUMN_COUNT);
+            AliensBulletsRectangles = new List<Rectangle>();
+            SpaceshipBulletsRectangles = new List<Rectangle>();
+
+            // Aliens rectanles
+            for (int y = 0; y < SpaceInvaders.ALIENS_IN_COLUMN_COUNT; ++y)
+            {
+                AliensRectangles.Add(new List<Rectangle>(SpaceInvaders.ALIENS_IN_ROW_COUNT));
+
+                for (int x = 0; x < SpaceInvaders.ALIENS_IN_ROW_COUNT; ++x)
+                {
+                    AliensRectangles[y].Add(new Rectangle
+                    {
+                        Height = SpaceInvaders.Board.Aliens[y][x].Height,
+                        Width = SpaceInvaders.Board.Aliens[y][x].Width,
+                        Fill = AliensImages[SpaceInvaders.Board.Aliens[y][x].TypeSize][0]
+                    });
+
+                    Canvas.SetTop(AliensRectangles[y][x], SpaceInvaders.Board.Aliens[y][x].Y);
+                    Canvas.SetLeft(AliensRectangles[y][x], SpaceInvaders.Board.Aliens[y][x].X);
+
+                    BoardPanel.Children.Add(AliensRectangles[y][x]);
+                }
+            }
+
+            GetAliensWithRightmostPositions();
+            GetAliensWithLeftmostPositions();
+
+            // Player rectangle
+            SpaceshipRectangle = new Rectangle
+            {
+                Height = SpaceInvaders.Board.Spaceship.Height,
+                Width = SpaceInvaders.Board.Spaceship.Width,
+                Fill = SpaceshipImage
+            };
+
+            Canvas.SetTop(SpaceshipRectangle, SpaceInvaders.Board.Spaceship.Y);
+            Canvas.SetLeft(SpaceshipRectangle, SpaceInvaders.Board.Spaceship.X);
+
+            BoardPanel.Children.Add(SpaceshipRectangle);
+
+            // This variable is for alien animation purposes
+            currentAlienImageIndex = 0;
+
+            previousTickAliensWentDown = false;
+
+            Canvas.SetLeft(GameOverLabel, 120);
+            Canvas.SetTop(GameOverLabel, 120);
+
+            // Setup aliens game timers intervals
+            currentAliensUpdatesPerSecond = INITIAL_ALIENS_UPDATES_PER_SECOND + (currentWaveIndex * WAVE_ALIEN_FPS_MULTIPLIER);
+
+            // Setup game timers
+            gameTimerAliens = new DispatcherTimer();
+            gameTimerAliens.Interval = TimeSpan.FromMilliseconds(1000.0 / currentAliensUpdatesPerSecond);
+            gameTimerAliens.Tick += GameTimerAliensTick;
+
+            gameTimerStandard = new DispatcherTimer();
+            gameTimerStandard.Interval = TimeSpan.FromMilliseconds(1000.0 / STANDARD_UPDATES_PER_SECOND);
+            gameTimerStandard.Tick += GameTimerStandardTick;
+
+            gameTimerAliens.Start();
+            gameTimerStandard.Start();
         }
 
         private void GameTimerStandardTick(object sender, EventArgs e)
@@ -429,78 +493,6 @@ namespace Space_Invaders
             SpaceInvaders.Board.Spaceship.ControllingEnabled = false;
             GameOverLabel.Content = "GAME OVER. SCORE: " + Score;
             GameOverLabel.Visibility = Visibility.Visible;
-        }
-
-        public void Setup()
-        {
-            SpaceInvaders.Setup();
-
-            ClearBoard();
-            WaveLabel.Content = "Wave: " + (currentWaveIndex + 1);
-
-            AliensRectangles = new List<List<Rectangle>>(SpaceInvaders.ALIENS_IN_COLUMN_COUNT);
-            AliensBulletsRectangles = new List<Rectangle>();
-            SpaceshipBulletsRectangles = new List<Rectangle>();
-
-            // Aliens rectanles
-            for (int y = 0; y < SpaceInvaders.ALIENS_IN_COLUMN_COUNT; ++y)
-            {
-                AliensRectangles.Add(new List<Rectangle>(SpaceInvaders.ALIENS_IN_ROW_COUNT));
-
-                for (int x = 0; x < SpaceInvaders.ALIENS_IN_ROW_COUNT; ++x)
-                {
-                    AliensRectangles[y].Add(new Rectangle
-                    {
-                        Height = SpaceInvaders.Board.Aliens[y][x].Height,
-                        Width = SpaceInvaders.Board.Aliens[y][x].Width,
-                        Fill = AliensImages[SpaceInvaders.Board.Aliens[y][x].TypeSize][0]
-                    });
-
-                    Canvas.SetTop(AliensRectangles[y][x], SpaceInvaders.Board.Aliens[y][x].Y);
-                    Canvas.SetLeft(AliensRectangles[y][x], SpaceInvaders.Board.Aliens[y][x].X);
-
-                    BoardPanel.Children.Add(AliensRectangles[y][x]);
-                }
-            }
-
-            GetAliensWithRightmostPositions();
-            GetAliensWithLeftmostPositions();
-
-            // Player rectangle
-            SpaceshipRectangle = new Rectangle
-            {
-                Height = SpaceInvaders.Board.Spaceship.Height,
-                Width = SpaceInvaders.Board.Spaceship.Width,
-                Fill = SpaceshipImage
-            };
-
-            Canvas.SetTop(SpaceshipRectangle, SpaceInvaders.Board.Spaceship.Y);
-            Canvas.SetLeft(SpaceshipRectangle, SpaceInvaders.Board.Spaceship.X);
-
-            BoardPanel.Children.Add(SpaceshipRectangle);
-
-            // This variable is for alien animation purposes
-            currentAlienImageIndex = 0;
-
-            previousTickAliensWentDown = false;
-
-            Canvas.SetLeft(GameOverLabel, 120);
-            Canvas.SetTop(GameOverLabel, 120);
-
-            // Setup aliens game timers intervals
-            currentAliensUpdatesPerSecond = INITIAL_ALIENS_UPDATES_PER_SECOND + (currentWaveIndex * WAVE_ALIEN_FPS_MULTIPLIER);
-
-            // Setup game timers
-            gameTimerAliens = new DispatcherTimer();
-            gameTimerAliens.Interval = TimeSpan.FromMilliseconds(1000.0 / currentAliensUpdatesPerSecond);
-            gameTimerAliens.Tick += GameTimerAliensTick;
-
-            gameTimerStandard = new DispatcherTimer();
-            gameTimerStandard.Interval = TimeSpan.FromMilliseconds(1000.0 / STANDARD_UPDATES_PER_SECOND);
-            gameTimerStandard.Tick += GameTimerStandardTick;
-
-            gameTimerAliens.Start();
-            gameTimerStandard.Start();
         }
 
         private void GetAliensWithRightmostPositions()

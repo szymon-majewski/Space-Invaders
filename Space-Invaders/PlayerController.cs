@@ -7,7 +7,7 @@ using System.Windows.Input;
 
 namespace Space_Invaders
 {
-    internal class PlayerController
+    public class PlayerController
     {
         Spaceship player;
         int rightBorder;
@@ -20,11 +20,11 @@ namespace Space_Invaders
             this.leftBorder = leftBorder;
         }
 
-        public void HandleMoveInput()
+        public int HandleMoveInput()
         {
             if (!player.ControllingEnabled)
             {
-                return;
+                return 0;
             }
 
             player.MoveDirection = Direction.None;
@@ -39,17 +39,17 @@ namespace Space_Invaders
                 player.MoveDirection += (int)Direction.Right;
             }
 
-            player.X += (int)player.MoveDirection * player.Speed;
+            return (int)player.MoveDirection * player.Speed;
         }
 
         public delegate void EventHandler(object sender, NewBulletEventArgs e);
         public event EventHandler PlayerShot;
 
-        public void HandleShootingInput()
+        public bool HandleShootingInput()
         {
             if (!player.ControllingEnabled)
             {
-                return;
+                return false; ;
             }
 
             // Add cooldown
@@ -65,7 +65,10 @@ namespace Space_Invaders
                                                                player.Y,
                                                                Bullet.Source.Spaceship
                                                                )));
+                return true;
             }
+
+            return false;
         }
     }
 }

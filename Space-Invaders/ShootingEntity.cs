@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Space_Invaders
 {
-    internal interface ShootingEntity : GameEntity
+    public interface ShootingEntity
     {
         // Direction of projectile
         public Direction DirectionOfProjectile { get; }
@@ -16,6 +16,6 @@ namespace Space_Invaders
         public bool CanShoot { get; set; }
         public Timer shootingCooldownTimer { get; set; }
 
-        public void Shoot();
+        public bool Shoot();
     }
 }

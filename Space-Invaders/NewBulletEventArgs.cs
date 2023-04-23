@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Space_Invaders
 {
-    internal class NewBulletEventArgs : EventArgs
+    public class NewBulletEventArgs : EventArgs
     {
         public Bullet NewBullet { get; set; }
 

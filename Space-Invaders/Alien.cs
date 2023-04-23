@@ -9,15 +9,9 @@ using System.Timers;
 
 namespace Space_Invaders
 {
-    internal class Alien : Renderable, MovingEntity, ShootingEntity
+    public class Alien : GameEntity, MovingEntity, ShootingEntity
     {
-        public int X { get; set; }
-        public int Y { get; set; }
-
-        public int Width { get; }
-        public int Height { get; }
         public int Speed { get; set; }
-        public int? MoveCooldown { get; set; }
         public Direction MoveDirection { get; set; }
 
         public Direction DirectionOfProjectile { get; }
@@ -30,11 +24,6 @@ namespace Space_Invaders
         public const int SHOOTING_COOLDOWN_UP_BORDER = 25000;
 
         private static Random random = new Random();
-
-        public void Render()
-        {
-            throw new NotImplementedException();
-        }
 
         public void Move()
         {
@@ -86,22 +75,20 @@ namespace Space_Invaders
             CanShoot = false;
         }
 
-        // Incerases Y. Returns true if an alien is on earth level.
+        // Incerases Y
         public void GetCloserToEarth(int amount)
         {
             Y += amount;
-
-            // Check game over
         }
 
-        public delegate void EventHandler(object sender, NewBulletEventArgs e);
-        public event EventHandler AlienShot;
+        internal delegate void EventHandler(object sender, NewBulletEventArgs e);
+        internal event EventHandler AlienShot;
 
-        public void Shoot()
+        public bool Shoot()
         {
             if (!CanShoot)
             {
-                return;
+                return false;
             }
 
             CanShoot = false;
@@ -113,6 +100,7 @@ namespace Space_Invaders
                                                           Y + Height,
                                                           Bullet.Source.Alien
                                                           )));
+            return true;
         }
 
         private void OnShootingCooldownTimerElapsed(object sender, EventArgs e)
